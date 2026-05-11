@@ -19,7 +19,7 @@ export default function RootLayout() {
       <Stack.Screen name="reward-day" options={{ headerShown: false }} />
       <Stack.Screen
         name="completion-modal"
-        options={{ presentation: "modal", title: "Log Completion" }}
+        options={{ presentation: "modal", headerShown: false }}
       />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
     </Stack>
