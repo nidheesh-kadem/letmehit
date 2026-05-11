@@ -1,0 +1,7 @@
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: [["babel-preset-expo", { jsxImportSource: "nativewind" }]],
+    // react-native-reanimated/plugin re-added in Phase 3 after react-native-worklets is installed
+  };
+};
