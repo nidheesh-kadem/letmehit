@@ -5,11 +5,14 @@ import { getWeekStart } from "../lib/dates";
 import type { AppState, Completion, Settings, WeekRecord } from "./types";
 
 type AppStore = AppState & {
+  _hasHydrated: boolean;
+  setHasHydrated: (value: boolean) => void;
   initWeek: () => void;
   updateSettings: (patch: Partial<Settings>) => void;
   addCompletion: (note?: string) => void;
   removeCompletion: (id: string) => void;
   rolloverWeek: (claimed?: boolean) => void;
+  _devReset: () => void;
 };
 
 function makeId(): string {
@@ -19,6 +22,9 @@ function makeId(): string {
 export const useAppStore = create<AppStore>()(
   persist(
     (set, get) => ({
+      _hasHydrated: false,
+      setHasHydrated: (value) => set({ _hasHydrated: value }),
+
       settings: {
         rewardDay: 6,
         reward: "",
@@ -81,6 +87,20 @@ export const useAppStore = create<AppStore>()(
         }));
       },
 
+      // Dev-only: wipe all state so onboarding can be retested without reinstalling
+      _devReset() {
+        set({
+          settings: {
+            rewardDay: 6,
+            reward: "",
+            weeklyTarget: 10,
+            onboardingComplete: false,
+          },
+          currentWeek: { weekStartDate: "", completions: [] },
+          history: [],
+        });
+      },
+
       // Called by the reward-day screen (Phase 5) when the user taps Claim.
       // Auto-archive from initWeek() uses claimed: false.
       rolloverWeek(claimed = true) {
@@ -103,6 +123,15 @@ export const useAppStore = create<AppStore>()(
     {
       name: "let-me-hit-store",
       storage: createJSONStorage(() => AsyncStorage),
+      // _hasHydrated and its setter are runtime-only; never write to AsyncStorage
+      partialize: (state) => ({
+        settings: state.settings,
+        currentWeek: state.currentWeek,
+        history: state.history,
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state) state.setHasHydrated(true);
+      },
     }
   )
 );
